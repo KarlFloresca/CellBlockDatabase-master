@@ -1,4 +1,6 @@
-﻿Public Class MainDashboard
+﻿Imports DocumentFormat.OpenXml.Office2016.Drawing.ChartDrawing
+
+Public Class MainDashboard
 
     Public Sub switchTableLayoutPanel(tlp As TableLayoutPanel, newControl As UserControl)
         tlp.Controls.Clear()
@@ -219,6 +221,8 @@
 
         Dim sql = "SELECT * FROM pdl"
         LoadToDGVForDisplay(sql, dgvCellblockInfo)
+
+        SwitchToMainDashboadControl()
     End Sub
 
     Private Sub DeletePDL(selectedPDLId As Integer)
@@ -256,4 +260,69 @@
     Private Sub PictureBox3_Click(sender As Object, e As EventArgs) Handles PictureBox3.Click
         SwitchToAddStaffControlHome()
     End Sub
+
+    Private Sub ComboBox2_SelectedIndexChanged(sender As Object, e As EventArgs) Handles ComboBox2.SelectedIndexChanged
+        ' Get the selected filter from the combo box
+        Dim selectedFilter As String = ComboBox2.SelectedItem.ToString()
+        Dim orderBy As String = ""
+
+        ' Determine the ORDER BY clause based on the selected filter
+        Select Case selectedFilter
+            Case "A-Z"
+                orderBy = "ORDER BY first_name ASC"
+            Case "Date (oldest)"
+                orderBy = "ORDER BY date_of_birth ASC"
+            Case "Date (newest)"
+                orderBy = "ORDER BY date_of_birth DESC"
+            Case "ID"
+                orderBy = "ORDER BY pdl_id ASC"
+        End Select
+
+        ' Fetch the sorted data using the new function
+        Dim dt As DataTable = GetTableOrder(pdl, orderBy)
+
+        ' Bind the data to the DataGridView
+        dgvCellblockInfo.DataSource = dt
+    End Sub
+
+    Private Sub TextBox1_TextChanged(sender As Object, e As EventArgs) Handles TextBox1.TextChanged
+        ' Get the search input
+        Dim searchText As String = TextBox1.Text.Trim()
+
+        ' If the search box is empty, load the unordered data
+        If String.IsNullOrWhiteSpace(searchText) Then
+            LoadInmateData() ' Reload the full dataset
+            Return
+        End If
+
+        ' Build the filter condition for the SQL query
+        Dim filter As String = $"LOWER(first_name) LIKE '%{searchText.ToLower()}%' OR " &
+                               $"LOWER(middle_name) LIKE '%{searchText.ToLower()}%' OR " &
+                               $"LOWER(last_name) LIKE '%{searchText.ToLower()}%' OR " &
+                               $"LOWER(CONCAT(first_name, ' ', last_name)) LIKE '%{searchText.ToLower()}%' OR " &
+                               $"LOWER(CONCAT(last_name, ' ', first_name)) LIKE '%{searchText.ToLower()}%' OR " &
+                               $"LOWER(CONCAT(first_name, ' ', middle_name, ' ', last_name)) LIKE '%{searchText.ToLower()}%'"
+
+        ' Fetch the filtered data using the GetTableData method
+        Dim dt As DataTable = GetTableData(pdl, filter)
+
+        ' Bind the data to the DataGridView
+        dgvCellblockInfo.DataSource = dt
+    End Sub
+
+    Public Sub LoadInmateData()
+        Dim dt As DataTable = GetTableData(pdl)
+        dgvCellblockInfo.DataSource = dt
+    End Sub
+
+
+    Private Sub Label2_Click(sender As Object, e As EventArgs) Handles Label2.Click
+
+    End Sub
+
+    Private Sub Label3_Click(sender As Object, e As EventArgs) Handles Label3.Click
+
+    End Sub
+
+
 End Class

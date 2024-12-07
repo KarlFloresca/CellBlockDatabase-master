@@ -436,7 +436,39 @@ Module modDB
         Next
     End Sub
 
+    Public Function GetColumnCountWithCondition(columnName As String, conditionValue As String) As Integer
+        ' Declare the count variable to store the result
+        Dim count As Integer = 0
 
+        ' Connection string to your database
+        Dim connectionString As String = "YourConnectionStringHere"
+
+        ' SQL query to count rows where the column equals the specified value
+        Dim query As String = "SELECT COUNT(*) FROM Areas WHERE " & columnName & " = @conditionValue"
+
+        Try
+            ' Create a new connection using the connection string
+            Using connection As New SqlConnection(connectionString)
+                ' Open the connection
+                connection.Open()
+
+                ' Create a command object with the query and the connection
+                Using command As New SqlCommand(query, connection)
+                    ' Add the parameter to avoid SQL injection
+                    command.Parameters.AddWithValue("@conditionValue", conditionValue)
+
+                    ' Execute the query and retrieve the count
+                    count = Convert.ToInt32(command.ExecuteScalar())
+                End Using
+            End Using
+        Catch ex As Exception
+            ' Handle any errors that occur during the connection or query execution
+            MessageBox.Show("Error: " & ex.Message)
+        End Try
+
+        ' Return the count
+        Return count
+    End Function
 
 
 
